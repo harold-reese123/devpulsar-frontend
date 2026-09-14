@@ -7,7 +7,7 @@ export const mockCurrentWave: WaveCycle = {
   startAt: '2026-09-01T00:00:00Z',
   endAt: '2026-09-29T00:00:00Z',
   totalPointsDistributed: 560,
-  totalRewardsUsdc: 850,
+  totalRewardsUsdc: '850.00',
   participantCount: 5,
 }
 
@@ -19,7 +19,7 @@ export const mockWaveHistory: WaveCycle[] = [
     startAt: '2026-08-04T00:00:00Z',
     endAt: '2026-09-01T00:00:00Z',
     totalPointsDistributed: 2400,
-    totalRewardsUsdc: 3200,
+    totalRewardsUsdc: '3200.00',
     participantCount: 8,
   },
   {
@@ -29,7 +29,7 @@ export const mockWaveHistory: WaveCycle[] = [
     startAt: '2026-07-07T00:00:00Z',
     endAt: '2026-08-04T00:00:00Z',
     totalPointsDistributed: 1900,
-    totalRewardsUsdc: 2500,
+    totalRewardsUsdc: '2500.00',
     participantCount: 6,
   },
 ]

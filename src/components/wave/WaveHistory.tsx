@@ -1,5 +1,5 @@
 import type { WaveCycle } from '@/types/wave'
-import { formatDate, formatNumber } from '@/utils/format'
+import { formatDate, formatUsdc } from '@/utils/format'
 
 interface WaveHistoryProps {
   waves: WaveCycle[]
@@ -24,9 +24,7 @@ function WaveHistory({ waves }: WaveHistoryProps) {
             </p>
           </div>
           <div className="text-right">
-            <p className="font-semibold text-stellar">
-              {formatNumber(wave.totalRewardsUsdc)} USDC
-            </p>
+            <p className="font-semibold text-stellar">{formatUsdc(wave.totalRewardsUsdc)} USDC</p>
             <p className="text-sm text-gray-500">{wave.participantCount} contributors</p>
           </div>
         </li>

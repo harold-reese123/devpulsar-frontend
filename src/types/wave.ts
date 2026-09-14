@@ -7,6 +7,6 @@ export interface WaveCycle {
   startAt: string
   endAt: string
   totalPointsDistributed: number
-  totalRewardsUsdc: number
+  totalRewardsUsdc: string
   participantCount: number
 }
