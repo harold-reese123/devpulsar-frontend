@@ -5,6 +5,14 @@ import { defineConfig } from 'vitest/config'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // @creit.tech/stellar-wallets-kit pulls in Node-targeted transitive deps
+  // (@near-js/crypto -> randombytes) that reference the Node global `global`,
+  // which doesn't exist in a browser. Vite doesn't polyfill Node globals by
+  // default, so without this the app crashes at module-eval time with
+  // "ReferenceError: global is not defined" before React ever mounts.
+  define: {
+    global: 'globalThis',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
