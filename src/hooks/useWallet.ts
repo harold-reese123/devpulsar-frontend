@@ -40,22 +40,24 @@ export function useWallet() {
       })
   }, [setSession])
 
-  const connect = useCallback(async () => {
-    setIsConnecting(true)
-    try {
-      await kit.openModal({
-        modalTitle: 'Connect a wallet',
-        onWalletSelected: async (option: ISupportedWallet) => {
-          kit.setWallet(option.id)
-          const { address } = await kit.getAddress()
-          setSession({ address, walletId: option.id })
-          localStorage.setItem(STORAGE_KEY, option.id)
-        },
-      })
-    } finally {
-      setIsConnecting(false)
-    }
-  }, [setSession])
+  const getSupportedWallets = useCallback((): Promise<ISupportedWallet[]> => {
+    return kit.getSupportedWallets()
+  }, [])
+
+  const connect = useCallback(
+    async (walletId: string) => {
+      setIsConnecting(true)
+      try {
+        kit.setWallet(walletId)
+        const { address } = await kit.getAddress()
+        setSession({ address, walletId })
+        localStorage.setItem(STORAGE_KEY, walletId)
+      } finally {
+        setIsConnecting(false)
+      }
+    },
+    [setSession],
+  )
 
   const disconnect = useCallback(async () => {
     await kit.disconnect()
@@ -63,5 +65,5 @@ export function useWallet() {
     clearSession()
   }, [clearSession])
 
-  return { address, isConnected, isConnecting, connect, disconnect }
+  return { address, isConnected, isConnecting, connect, disconnect, getSupportedWallets }
 }

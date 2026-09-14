@@ -14,5 +14,14 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
+    server: {
+      // These CJS packages (pulled in via @creit.tech/stellar-wallets-kit)
+      // don't declare static named exports, so Vitest's default SSR module
+      // loader can't interop them. Force them through Vite's transform
+      // pipeline instead, same as the dev server and production build do.
+      deps: {
+        inline: ['@creit.tech/stellar-wallets-kit', '@stellar/freighter-api'],
+      },
+    },
   },
 })

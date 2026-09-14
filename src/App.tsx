@@ -1,4 +1,5 @@
 import { NavLink, Route, Routes } from 'react-router-dom'
+import WalletButton from '@/components/wallet/WalletButton'
 import Dashboard from '@/pages/Dashboard'
 import Leaderboard from '@/pages/Leaderboard'
 import NotFound from '@/pages/NotFound'
@@ -26,6 +27,9 @@ function App() {
           <NavLink to="/rewards" className={navLinkClass}>
             Rewards
           </NavLink>
+          <div className="ml-auto">
+            <WalletButton />
+          </div>
         </nav>
       </header>
 
