@@ -1,35 +1,45 @@
 # DevPulsar Frontend
 
-![Build Status](https://img.shields.io/github/actions/workflow/status/devpulsar/devpulsar-frontend/ci.yml?branch=main&style=for-the-badge&logo=github)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript)
 ![Stellar](https://img.shields.io/badge/Stellar-Network-7B61FF?style=for-the-badge&logo=stellar)
 
-> Track contributions. Earn points. Claim rewards — on-chain.
+> Track contributions. Earn points. Wallet-connected, with on-chain reward distribution in progress.
 
 ---
 
 ## Overview
 
-**DevPulsar Frontend** is the user-facing interface for the DevPulsar platform — a decentralized contribution tracking system built on the [Stellar](https://stellar.org) blockchain. It bridges open-source activity with on-chain incentives, giving contributors real-time visibility into their impact and earnings.
+**DevPulsar Frontend** is the user-facing interface for the DevPulsar platform — a contribution tracking system for open-source projects, built with Stellar wallet integration at its core. It gives contributors visibility into their tracked activity, points, and wave cycle standing, with USDC reward distribution designed around the Stellar network.
 
 The frontend serves two primary audiences:
 
-- **Contributors** — developers who submit pull requests to tracked repositories and want to monitor their points, wave cycle standing, and USDC reward history.
+- **Contributors** — developers who submit pull requests to tracked repositories and want to monitor their points, wave cycle standing, and reward history.
 - **Maintainers** — project owners who oversee contribution waves, validate activity, and manage reward distribution.
 
-When a contributor's pull request is merged into a tracked repository, DevPulsar picks it up, assigns on-chain points based on contribution weight, and queues USDC rewards for distribution at the end of each wave cycle — all surfaced through this interface.
+**Current status:** wallet connection (Freighter, xBull, and other Stellar wallets via Stellar Wallets Kit) is fully implemented and working. Points, contribution tracking, and wave data are served by the backend API. On-chain reward distribution via a Soroban smart contract is planned but not yet built — see [Reconciliation Notes](#reconciliation-notes) below.
 
 ---
 
 ## Key Features
 
-- **Contribution Dashboard** — real-time feed of merged PRs, point assignments, and contribution status across tracked repositories.
+- **Contribution Dashboard** — feed of merged PRs, point assignments, and contribution status across tracked repositories.
 - **Wave Cycle Tracker** — live countdown and progress bar for the current reward wave, with historical wave summaries.
 - **Points Leaderboard** — ranked view of contributors by points earned within the active wave or all-time.
-- **Wallet Connection** — seamless Stellar wallet integration via Stellar Wallets Kit, supporting Freighter, xBull, and other Stellar-compatible wallets.
-- **Reward History** — paginated log of past USDC distributions, claimable rewards, and transaction links on Stellar Explorer.
+- **Wallet Connection** — working Stellar wallet integration via Stellar Wallets Kit, supporting Freighter, xBull, and other Stellar-compatible wallets.
+- **Reward History** — log of past distributions and claimable balances (claim flow is currently a stub — see below).
+
+---
+
+## Reconciliation Notes
+
+This section exists so the docs match the code exactly. If you're evaluating this project, start here.
+
+- **Live and working:** wallet connect/disconnect, address persistence, dashboard/leaderboard/wave UI, backend API integration.
+- **Backend-served, not on-chain:** points, contributions, and leaderboard data currently come from the backend API (seeded data in v1 — see backend README). There is no deployed Soroban contract yet, and `@stellar/stellar-sdk` is a dependency but not yet wired into any on-chain read/write path.
+- **Stub, not functional:** `claimReward()` in `src/utils/stellar.ts` currently logs and resolves without submitting a transaction. `POST /rewards/claim` on the backend returns a null transaction payload. Claiming rewards is not yet live end-to-end.
+- **Planned, not built:** GitHub webhook ingestion of real PR merges (currently mocked/seeded), on-chain point assignment, on-chain reward payout.
 
 ---
 
@@ -42,7 +52,7 @@ When a contributor's pull request is merged into a tracked repository, DevPulsar
 | Styling | [Tailwind CSS](https://tailwindcss.com) |
 | Build Tool | [Vite](https://vitejs.dev) |
 | Wallet Integration | [Stellar Wallets Kit](https://github.com/Creit-Tech/Stellar-Wallets-Kit) |
-| Blockchain SDK | [Stellar JS SDK](https://github.com/stellar/js-stellar-sdk) |
+| Blockchain SDK | [Stellar JS SDK](https://github.com/stellar/js-stellar-sdk) (installed; not yet used for on-chain calls) |
 | Routing | [React Router v6](https://reactrouter.com) |
 | State Management | [Zustand](https://zustand-demo.pmnd.rs) |
 | HTTP Client | [Axios](https://axios-http.com) |
@@ -50,8 +60,6 @@ When a contributor's pull request is merged into a tracked repository, DevPulsar
 ---
 
 ## Prerequisites
-
-Before you begin, make sure you have the following installed:
 
 - **Node.js** `>= 18.x` — [Download](https://nodejs.org)
 - **npm** `>= 9.x` or **yarn** `>= 1.22.x`
@@ -64,29 +72,25 @@ Before you begin, make sure you have the following installed:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/devpulsar/devpulsar-frontend.git
+git clone https://github.com/harold-reese123/devpulsar-frontend.git
 cd devpulsar-frontend
 ```
 
 ### 2. Install dependencies
 
 ```bash
-# using npm
 npm install
-
-# or using yarn
+# or
 yarn install
 ```
 
 ### 3. Configure environment variables
 
-Copy the example env file and fill in your values:
-
 ```bash
 cp .env.example .env
 ```
 
-See the [Environment Variables](#environment-variables) section for details on each variable.
+See [Environment Variables](#environment-variables) for details.
 
 ### 4. Start the development server
 
@@ -102,61 +106,58 @@ The app will be available at `http://localhost:5173`.
 
 ```
 devpulsar-frontend/
-├── public/                  # Static assets
+├── public/ # Static assets
 ├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── common/          # Buttons, badges, modals, loaders
-│   │   ├── dashboard/       # ContributionFeed, PRCard, PointsBadge
-│   │   ├── leaderboard/     # LeaderboardTable, RankBadge
-│   │   ├── wallet/          # WalletButton, WalletModal, AddressChip
-│   │   └── wave/            # WaveCycleTimer, WaveProgress, WaveHistory
-│   ├── pages/               # Route-level page components
-│   │   ├── Dashboard.tsx    # Main contributor dashboard
-│   │   ├── Leaderboard.tsx  # Points leaderboard
-│   │   ├── Rewards.tsx      # Reward history & claim interface
-│   │   ├── Wave.tsx         # Wave cycle detail view
-│   │   └── NotFound.tsx     # 404 fallback
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useWallet.ts     # Stellar wallet state & actions
-│   │   ├── useContributions.ts  # Fetch & subscribe to PR data
-│   │   ├── useWaveCycle.ts  # Current wave data & countdown
-│   │   └── useRewards.ts    # Reward history & claim logic
-│   ├── utils/               # Pure utility functions
-│   │   ├── stellar.ts       # Stellar SDK helpers (tx building, formatting)
-│   │   ├── format.ts        # Date, number, address formatters
-│   │   └── api.ts           # Axios instance & API request helpers
-│   ├── store/               # Zustand global state slices
-│   ├── types/               # Shared TypeScript interfaces & enums
-│   ├── App.tsx              # Root component & router setup
-│   └── main.tsx             # Vite entry point
-├── .env.example             # Environment variable template
-├── tailwind.config.ts       # Tailwind configuration
-├── tsconfig.json            # TypeScript configuration
-└── vite.config.ts           # Vite configuration
+│ ├── components/ # Reusable UI components
+│ │ ├── dashboard/ # ContributionFeed, PRCard, PointsBadge
+│ │ ├── leaderboard/ # LeaderboardTable, RankBadge
+│ │ ├── wallet/ # WalletButton, WalletModal, AddressChip
+│ │ └── wave/ # WaveCycleTimer, WaveProgress, WaveHistory
+│ ├── pages/ # Route-level page components
+│ │ ├── Dashboard.tsx
+│ │ ├── Leaderboard.tsx
+│ │ ├── Rewards.tsx
+│ │ ├── Wave.tsx
+│ │ └── NotFound.tsx
+│ ├── hooks/
+│ │ ├── useWallet.ts
+│ │ ├── useContributions.ts
+│ │ ├── useWaveCycle.ts
+│ │ └── useRewards.ts
+│ ├── utils/
+│ │ ├── stellar.ts # Wallet + Stellar helpers (claim flow is a stub — see Reconciliation Notes)
+│ │ ├── format.ts
+│ │ └── api.ts
+│ ├── store/ # Zustand global state slices
+│ ├── types/ # Shared TypeScript interfaces & enums
+│ ├── App.tsx
+│ └── main.tsx
+├── .env.example
+├── tailwind.config.ts
+├── tsconfig.json
+└── vite.config.ts
 ```
+
 
 ---
 
 ## Environment Variables
 
-Create a `.env` file at the project root based on `.env.example`. All variables must be prefixed with `VITE_` to be exposed to the Vite client bundle.
+All variables must be prefixed with `VITE_` to be exposed to the Vite client bundle.
 
 | Variable | Required | Description |
 |---|---|---|
-| `VITE_STELLAR_NETWORK` | ✅ | Stellar network to connect to. `testnet` or `mainnet` |
-| `VITE_BACKEND_URL` | ✅ | Base URL of the devpulsar-backend API (e.g. `https://api.devpulsar.io`) |
-| `VITE_CONTRACT_ADDRESS` | ✅ | Stellar smart contract address for the DevPulsar rewards contract |
-| `VITE_HORIZON_URL` | ❌ | Custom Horizon server URL. Defaults to the public Stellar Horizon endpoint |
-| `VITE_SOROBAN_RPC_URL` | ❌ | Soroban RPC endpoint for contract interactions. Defaults to the public RPC |
+| `VITE_STELLAR_NETWORK` | ✅ | Stellar network. `testnet` or `mainnet` |
+| `VITE_BACKEND_URL` | ✅ | Base URL of the devpulsar-backend API |
+| `VITE_CONTRACT_ADDRESS` | ❌ (not yet used) | Reserved for the future rewards contract — no contract is deployed yet, so this has no effect currently |
+| `VITE_HORIZON_URL` | ❌ | Custom Horizon server URL. Defaults to the public endpoint |
+| `VITE_SOROBAN_RPC_URL` | ❌ (not yet used) | Reserved for future Soroban contract interactions |
 
 Example `.env`:
 
 ```env
 VITE_STELLAR_NETWORK=testnet
 VITE_BACKEND_URL=https://api.devpulsar.io
-VITE_CONTRACT_ADDRESS=CXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-VITE_HORIZON_URL=https://horizon-testnet.stellar.org
-VITE_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 ```
 
 > Never commit your `.env` file. It is already listed in `.gitignore`.
@@ -166,27 +167,18 @@ VITE_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 ## Available Scripts
 
 ```bash
-# Start the local development server with hot reload
-npm run dev
-
-# Build the app for production (outputs to /dist)
-npm run build
-
-# Preview the production build locally
-npm run preview
-
-# Run ESLint across all source files
-npm run lint
-
-# Run the test suite (Vitest)
-npm run test
+npm run dev       # Start local dev server with hot reload
+npm run build      # Build for production (outputs to /dist)
+npm run preview    # Preview the production build locally
+npm run lint       # Run ESLint
+npm run test       # Run the test suite (Vitest)
 ```
 
 ---
 
 ## Wallet Connection
 
-DevPulsar uses [Stellar Wallets Kit](https://github.com/Creit-Tech/Stellar-Wallets-Kit) to provide a unified wallet connection experience across multiple Stellar wallets.
+DevPulsar uses [Stellar Wallets Kit](https://github.com/Creit-Tech/Stellar-Wallets-Kit) for wallet connection across multiple Stellar wallets. This part is fully implemented and working.
 
 ### Supported Wallets
 
@@ -200,12 +192,8 @@ DevPulsar uses [Stellar Wallets Kit](https://github.com/Creit-Tech/Stellar-Walle
 1. The user clicks "Connect Wallet" in the top navigation.
 2. `WalletModal` opens and presents available wallet options detected in the browser.
 3. On selection, Stellar Wallets Kit requests the public key from the wallet extension.
-4. The public key is stored in the Zustand wallet store and used to:
-   - Fetch the contributor's on-chain points and reward balance from the contract.
-   - Sign transactions when claiming USDC rewards.
+4. The public key is stored in the Zustand wallet store and used to fetch the contributor's points and reward data **from the backend API** (not from an on-chain contract — see Reconciliation Notes).
 5. Wallet state persists across page refreshes via `localStorage`.
-
-The core wallet logic lives in `src/hooks/useWallet.ts`:
 
 ```ts
 import { useWalletStore } from '@/store/walletStore'
@@ -217,18 +205,18 @@ const { address, connect, disconnect, isConnected } = useWallet()
 
 ## Connecting to the Backend
 
-The frontend communicates with [devpulsar-backend](https://github.com/devpulsar/devpulsar-backend) over a REST API. All requests are made through the Axios instance configured in `src/utils/api.ts`, which automatically attaches the connected wallet address as an `X-Wallet-Address` header for authenticated endpoints.
+The frontend communicates with [devpulsar-backend](https://github.com/harold-reese123/devpulsar-backend) over a REST API via the Axios instance in `src/utils/api.ts`, which attaches the connected wallet address as an `X-Wallet-Address` header for authenticated endpoints.
 
 ### Key Endpoints Consumed
 
 | Endpoint | Description |
 |---|---|
-| `GET /contributions/:address` | Fetch merged PRs and points for a contributor |
+| `GET /contributions/:address` | Fetch tracked PRs and points for a contributor |
 | `GET /wave/current` | Get the active wave cycle metadata |
 | `GET /wave/history` | List past wave cycles and reward totals |
 | `GET /leaderboard` | Ranked contributor list for the current wave |
 | `GET /rewards/:address` | Reward history and claimable balance |
-| `POST /rewards/claim` | Initiate a USDC reward claim (requires signed tx) |
+| `POST /rewards/claim` | Initiate a reward claim (currently returns a stubbed response — see Reconciliation Notes) |
 
 The base URL is configured via `VITE_BACKEND_URL` in your `.env` file.
 
@@ -236,24 +224,17 @@ The base URL is configured via `VITE_BACKEND_URL` in your `.env` file.
 
 ## Contributing
 
-Contributions are welcome. To get started:
-
 1. Fork the repository and create a feature branch:
    ```bash
    git checkout -b feat/your-feature-name
    ```
-
-2. Make your changes, following the existing code style (ESLint + Prettier are enforced).
-
+2. Make your changes, following the existing code style (ESLint + Prettier).
 3. Run lint and tests before pushing:
    ```bash
    npm run lint
    npm run test
    ```
-
 4. Open a pull request against `main` with a clear description of what you changed and why.
-
-Please keep PRs focused — one feature or fix per PR. For larger changes, open an issue first to discuss the approach.
 
 ---
 
