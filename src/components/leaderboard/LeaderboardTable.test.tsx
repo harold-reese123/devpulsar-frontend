@@ -1,10 +1,21 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { api } from '@/utils/api'
 import { mockLeaderboard } from '@/mocks/leaderboard'
+import type { LeaderboardScope } from '@/types/leaderboard'
 import LeaderboardTable from './LeaderboardTable'
+
+vi.mock('@/utils/api', () => ({
+  api: { get: vi.fn() },
+}))
 
 describe('LeaderboardTable', () => {
   it('shows the current wave leaderboard by default, then switches to all-time', async () => {
+    vi.mocked(api.get).mockImplementation((_url, config) => {
+      const scope = (config as { params: { scope: LeaderboardScope } }).params.scope
+      return Promise.resolve({ data: mockLeaderboard[scope] })
+    })
+
     render(<LeaderboardTable />)
 
     const [firstWaveEntry] = mockLeaderboard.wave
